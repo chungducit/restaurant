@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,20 +21,20 @@ public class ItemService {
 
 	@Autowired
 	private CategoryRepository categoryRepository;
-	
+
 	@Autowired
 	private ItemsRepository itemsRepository;
-	
-    @Autowired
-    public ItemService (CategoryRepository categoryRepository, ItemsRepository itemsRepository) {
-        this.categoryRepository = categoryRepository;
-        this.itemsRepository = itemsRepository;
-    }
-    
-    public List<CategoryInfo> getAllItemInfo () {
+
+	@Autowired
+	public ItemService(CategoryRepository categoryRepository, ItemsRepository itemsRepository) {
+		this.categoryRepository = categoryRepository;
+		this.itemsRepository = itemsRepository;
+	}
+
+	public List<CategoryInfo> getAllItemInfo() {
 		Iterable<Category> cates = this.categoryRepository.findByParentId(null);
 		Map<Long, CategoryInfo> cateInfoMap = new HashMap<>();
-		
+
 		cates.forEach(cate -> {
 			CategoryInfo cateInfo = new CategoryInfo();
 			cateInfo.setId(cate.getId());
@@ -49,8 +50,8 @@ public class ItemService {
 					sub_cateInfo.setName(c.getName());
 					sub_cateInfo.setCode(c.getCode());
 					sub_cateInfo.setParentId(c.getParentId());
-					
-					//Get item list of this category
+
+					// Get item list of this category
 					Iterable<Items> items = itemsRepository.findByCategoryId(c.getId());
 					if (null != items) {
 						List<ItemInfo> itemList = new ArrayList<>();
@@ -64,24 +65,42 @@ public class ItemService {
 								itemList.add(iteminfo);
 							}
 						});
-						
+
 						sub_cateInfo.setItemList(itemList);
 					}
-					
-					//Add list category child to root
+
+					// Add list category child to root
 					cateList.add(sub_cateInfo);
 				});
 				cateInfo.setCateList(cateList);
 			}
 
 			cateInfoMap.put(cate.getId(), cateInfo);
-        });
-    	
-        List<CategoryInfo> categoriesInfo = new ArrayList<>();
-        for (Long cateId : cateInfoMap.keySet()) {
-        	categoriesInfo.add(cateInfoMap.get(cateId));
-        }
-        return categoriesInfo;
-    }
-	
+		});
+
+		List<CategoryInfo> categoriesInfo = new ArrayList<>();
+		for (Long cateId : cateInfoMap.keySet()) {
+			categoriesInfo.add(cateInfoMap.get(cateId));
+		}
+		return categoriesInfo;
+	}
+
+	public List<Items> saveItem(Items item) {
+		itemsRepository.save(item);
+		return (List<Items>) itemsRepository.findAll();
+	}
+
+	public List<Items> deleteItem(Items item) {
+		itemsRepository.delete(item);
+		return (List<Items>) itemsRepository.findAll();
+	}
+
+	public List<Items> deleteItemById(Long id) {
+		itemsRepository.deleteById(id);
+		return (List<Items>) itemsRepository.findAll();
+	}
+
+	public Optional<Items> getById(Long id) {
+		return itemsRepository.findById(id);
+	}
 }

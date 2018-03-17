@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.project.restaurant.models.User;
 
 @Repository
-public interface UserRepository extends CrudRepository<User, Long>{
-
+public interface UserRepository extends CrudRepository<User, Long> {
+	Iterable<User> findByUsername(String username);
 }
